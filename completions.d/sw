@@ -1,0 +1,7 @@
+_sw() {
+	local cur
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	COMPREPLY=( $(compgen -W "$(sw --list-possibilities)" -- ${cur}) )
+	return 0
+}
+complete -F _sw sw

@@ -5,13 +5,25 @@
 # 1. No dir specified: current dir
 # 2. Subdirectory of current directory
 # 3. Subdirectory of dir list (defined in DIRS below)
+#
+# Special modes:
+# --list-possibilities - Print all possible directories (used by bash-completion script)
 
 set -euo pipefail
 
 DIRS=(
+    "./"
 	"/home/csnyder"
 	"/home/csnyder/git"
 )
+
+list_possibilities() {
+	for dir in "${DIRS[@]}"; do
+		for subdir in $dir/*; do
+			[ -d $subdir ] && echo $(basename $subdir)
+		done 
+	done
+}
 
 look_for_directory() { # argument: directory
 	for dir in "${DIRS[@]}"; do
@@ -29,10 +41,6 @@ determine_directory() { # argument: directory (passed in on command-line)
 		pwd
 		return
 	fi
-	if [ -d "./$1" ]; then # subdirectory exists in current directory
-		readlink -f "./$1"
-		return
-	fi
 	look_for_directory "$1"
 }
 
@@ -41,6 +49,11 @@ open_tmux() { # argument: directory (also used as session name)
 	session=$(echo $1 | sed 's/\./_/g')
 	tmux new-session -A -c "$dir" -s "$session" $SHELL
 }
+
+if [ "--list-possibilities" == $1 ]; then
+	list_possibilities
+	exit 0
+fi
 
 dir="$(determine_directory "$1")"
 open_tmux "$dir"
